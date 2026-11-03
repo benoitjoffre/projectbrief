@@ -70,3 +70,20 @@ export type CreateClientInput = z.infer<typeof createClientSchema>;
 export type UpdateClientInput = z.infer<typeof updateClientSchema>;
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
+
+export const answerParamsSchema = z.object({
+  projectId: z.uuid('Identifiant de projet invalide'),
+  questionId: z.uuid('Identifiant de question invalide'),
+});
+
+export const projectIdParamSchema = z.object({ projectId: z.uuid('Identifiant de projet invalide') });
+
+// `value` n'est volontairement pas trim : on conserve la saisie telle quelle (retours à la ligne inclus).
+export const upsertAnswerSchema = z
+  .strictObject({
+    value: z.string().max(20_000, 'Réponse trop longue').optional(),
+    isReviewed: z.boolean().optional(),
+  })
+  .refine((v) => v.value !== undefined || v.isReviewed !== undefined, 'Aucun champ à modifier');
+
+export type UpsertAnswerInput = z.infer<typeof upsertAnswerSchema>;

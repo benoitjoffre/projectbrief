@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
 import { TYPE_LABELS, type Project } from '../api/types'
 import { ProjectForm } from '../components/ProjectForm'
 import { formatDate } from '../api/format'
+import { DiscoveryPanel } from '../features/discovery/DiscoveryPanel'
 import { useApi } from '../hooks/useApi'
 import { ErrorMessage, Loading, PageHeader, secondaryButton, StatusBadge } from '../components/ui'
 
@@ -20,6 +21,8 @@ export function ProjectDetailPage() {
   const { id = '' } = useParams()
   const { data: project, error, loading, reload } = useApi<Project>(`/api/projects/${id}`)
   const [editing, setEditing] = useState(false)
+  const [params, setParams] = useSearchParams()
+  const tab = params.get('tab') === 'discovery' ? 'discovery' : 'info'
 
   if (loading) return <Loading />
   if (error) {
@@ -45,14 +48,33 @@ export function ProjectDetailPage() {
       <PageHeader
         title={project.name}
         action={
-          !editing && (
+          tab === 'info' && !editing && (
             <button onClick={() => setEditing(true)} className={secondaryButton}>
               Modifier
             </button>
           )
         }
       />
-      {editing ? (
+      <div role="tablist" className="mb-6 flex gap-1 border-b border-slate-200">
+        {(['info', 'discovery'] as const).map((t) => (
+          <button
+            key={t}
+            role="tab"
+            aria-selected={tab === t}
+            onClick={() => setParams(t === 'info' ? {} : { tab: t }, { replace: true })}
+            className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium ${
+              tab === t
+                ? 'border-indigo-600 text-indigo-700'
+                : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            {t === 'info' ? 'Informations' : 'Découverte'}
+          </button>
+        ))}
+      </div>
+      {tab === 'discovery' ? (
+        <DiscoveryPanel projectId={project.id} />
+      ) : editing ? (
         <div className="max-w-2xl">
           <ProjectForm
             initial={project}

@@ -47,3 +47,38 @@ export type ClientInput = Pick<Client, 'name'> & Partial<Pick<Client, 'email' | 
 export type ProjectInput = Partial<
   Pick<Project, 'name' | 'description' | 'objective' | 'type' | 'status' | 'deadline'>
 > & { clientId?: string }
+
+export interface Question {
+  id: string
+  categoryId: string
+  label: string
+  helpText: string | null
+  sortOrder: number
+}
+
+export interface QuestionCategory {
+  id: string
+  title: string
+  description: string | null
+  sortOrder: number
+  questions: Question[]
+}
+
+export interface Answer {
+  id: string
+  projectId: string
+  questionId: string
+  questionText: string
+  value: string
+  isReviewed: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface DiscoveryProgress {
+  totalQuestions: number
+  reviewedQuestions: number
+  percentage: number
+}
+
+export type AnswerInput = Pick<Answer, 'value' | 'isReviewed'>

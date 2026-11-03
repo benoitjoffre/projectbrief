@@ -1,3 +1,4 @@
+import { createRequire } from 'node:module';
 import request from 'supertest';
 import { sequelize } from '../src/config/database';
 import { createApp } from '../src/app';
@@ -15,3 +16,8 @@ export async function resetDb() {
 export async function closeDb() {
   await sequelize.close();
 }
+
+// Le seeder (CommonJS, idempotent) est celui utilisé en développement.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const seeder = createRequire(__filename)('../seeders/20260102000001-discovery-questions.js');
+export const seedQuestions = () => seeder.up(sequelize.getQueryInterface());

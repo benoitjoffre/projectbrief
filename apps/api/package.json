@@ -11,7 +11,8 @@
     "db:migrate": "sequelize-cli db:migrate",
     "db:migrate:undo": "sequelize-cli db:migrate:undo",
     "db:migrate:status": "sequelize-cli db:migrate:status",
-    "db:migrate:test": "NODE_ENV=test sequelize-cli db:migrate"
+    "db:migrate:test": "NODE_ENV=test sequelize-cli db:migrate",
+    "db:seed": "sequelize-cli db:seed:all"
   },
   "keywords": [],
   "author": "Benoit JOFFRE",

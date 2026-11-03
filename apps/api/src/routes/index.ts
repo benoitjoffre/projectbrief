@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { clientController } from '../controllers/clientController';
 import { projectController } from '../controllers/projectController';
+import { discoveryController } from '../controllers/discoveryController';
 
 export const apiRouter = Router();
 
@@ -13,3 +14,8 @@ apiRouter.get('/projects', projectController.list);
 apiRouter.get('/projects/:id', projectController.get);
 apiRouter.post('/projects', projectController.create);
 apiRouter.patch('/projects/:id', projectController.update);
+
+apiRouter.get('/questions', discoveryController.listQuestions);
+apiRouter.get('/projects/:projectId/answers', discoveryController.listAnswers);
+apiRouter.put('/projects/:projectId/answers/:questionId', discoveryController.saveAnswer);
+apiRouter.get('/projects/:projectId/discovery/progress', discoveryController.progress);

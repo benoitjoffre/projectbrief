@@ -81,3 +81,18 @@ export function Field({
     </label>
   )
 }
+
+export function ProgressBar({ percentage, label }: { percentage: number; label: string }) {
+  return (
+    <div
+      role="progressbar"
+      aria-label={label}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={percentage}
+      className="h-2.5 w-full overflow-hidden rounded-full bg-slate-200"
+    >
+      <div className="h-full rounded-full bg-indigo-600 transition-all" style={{ width: `${percentage}%` }} />
+    </div>
+  )
+}

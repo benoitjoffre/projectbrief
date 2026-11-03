@@ -1,4 +1,4 @@
-import type { Client, ClientInput, Project, ProjectInput } from './types'
+import type { Answer, AnswerInput, Client, ClientInput, Project, ProjectInput } from './types'
 
 const BASE = import.meta.env.VITE_API_URL ?? ''
 
@@ -40,4 +40,6 @@ export const api = {
   createProject: (data: ProjectInput) => request<Project>('/api/projects', send('POST', data)),
   updateProject: (id: string, data: ProjectInput) =>
     request<Project>(`/api/projects/${id}`, send('PATCH', data)),
+  saveAnswer: (projectId: string, questionId: string, data: AnswerInput) =>
+    request<Answer>(`/api/projects/${projectId}/answers/${questionId}`, send('PUT', data)),
 }
