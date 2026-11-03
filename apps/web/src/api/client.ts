@@ -1,4 +1,15 @@
-import type { Answer, AnswerInput, Client, ClientInput, Project, ProjectInput } from './types'
+import type {
+  Answer,
+  AnswerInput,
+  Client,
+  ClientInput,
+  Feature,
+  FeatureInput,
+  Project,
+  ProjectInput,
+  ScopingItem,
+  ScopingItemInput,
+} from './types'
 
 const BASE = import.meta.env.VITE_API_URL ?? ''
 
@@ -42,4 +53,16 @@ export const api = {
     request<Project>(`/api/projects/${id}`, send('PATCH', data)),
   saveAnswer: (projectId: string, questionId: string, data: AnswerInput) =>
     request<Answer>(`/api/projects/${projectId}/answers/${questionId}`, send('PUT', data)),
+  createFeature: (projectId: string, data: FeatureInput) =>
+    request<Feature>(`/api/projects/${projectId}/features`, send('POST', data)),
+  updateFeature: (projectId: string, id: string, data: FeatureInput) =>
+    request<Feature>(`/api/projects/${projectId}/features/${id}`, send('PATCH', data)),
+  deleteFeature: (projectId: string, id: string) =>
+    request<null>(`/api/projects/${projectId}/features/${id}`, { method: 'DELETE' }),
+  createScopingItem: (projectId: string, data: ScopingItemInput) =>
+    request<ScopingItem>(`/api/projects/${projectId}/scoping-items`, send('POST', data)),
+  updateScopingItem: (projectId: string, id: string, data: ScopingItemInput) =>
+    request<ScopingItem>(`/api/projects/${projectId}/scoping-items/${id}`, send('PATCH', data)),
+  deleteScopingItem: (projectId: string, id: string) =>
+    request<null>(`/api/projects/${projectId}/scoping-items/${id}`, { method: 'DELETE' }),
 }

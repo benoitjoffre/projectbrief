@@ -1,5 +1,12 @@
 import { z } from 'zod';
-import { PROJECT_STATUSES, PROJECT_TYPES } from '../models';
+import {
+  FEATURE_PRIORITIES,
+  PROJECT_STATUSES,
+  PROJECT_TYPES,
+  SCOPING_SEVERITIES,
+  SCOPING_STATUSES,
+  SCOPING_TYPES,
+} from '../models';
 
 // Champ texte optionnel : trim, chaîne vide => null.
 const optionalText = (max: number) =>
@@ -87,3 +94,66 @@ export const upsertAnswerSchema = z
   .refine((v) => v.value !== undefined || v.isReviewed !== undefined, 'Aucun champ à modifier');
 
 export type UpsertAnswerInput = z.infer<typeof upsertAnswerSchema>;
+
+const nonEmptyPatch = (v: object) => Object.keys(v).length > 0;
+
+export const featureParamsSchema = z.object({
+  projectId: z.uuid('Identifiant de projet invalide'),
+  featureId: z.uuid('Identifiant de fonctionnalité invalide'),
+});
+
+const featureShape = {
+  title: requiredText(255),
+  description: optionalText(10_000),
+  priority: z.enum(FEATURE_PRIORITIES),
+  acceptanceCriteria: optionalText(10_000),
+  sortOrder: z.number().int().min(0).max(1_000_000),
+};
+
+export const createFeatureSchema = z.strictObject({
+  ...featureShape,
+  priority: featureShape.priority.default('COULD'),
+  sortOrder: featureShape.sortOrder.default(0),
+});
+
+// Pas de .default() ici : une mise à jour partielle ne doit jamais réinitialiser un champ omis.
+export const updateFeatureSchema = z
+  .strictObject(featureShape)
+  .partial()
+  .refine(nonEmptyPatch, 'Aucun champ à modifier');
+
+export const scopingItemParamsSchema = z.object({
+  projectId: z.uuid('Identifiant de projet invalide'),
+  itemId: z.uuid('Identifiant d’élément invalide'),
+});
+
+export const listScopingItemsQuerySchema = z.object({
+  type: z.enum(SCOPING_TYPES).optional(),
+  status: z.enum(SCOPING_STATUSES).optional(),
+});
+
+const scopingItemShape = {
+  type: z.enum(SCOPING_TYPES),
+  title: requiredText(255),
+  description: optionalText(10_000),
+  status: z.enum(SCOPING_STATUSES),
+  severity: z.enum(SCOPING_SEVERITIES).nullable(),
+  resolution: optionalText(10_000),
+};
+
+export const createScopingItemSchema = z.strictObject({
+  ...scopingItemShape,
+  status: scopingItemShape.status.default('OPEN'),
+  severity: scopingItemShape.severity.nullish().transform((v) => v ?? null),
+  resolution: scopingItemShape.resolution,
+});
+
+export const updateScopingItemSchema = z
+  .strictObject(scopingItemShape)
+  .partial()
+  .refine(nonEmptyPatch, 'Aucun champ à modifier');
+
+export type CreateFeatureInput = z.infer<typeof createFeatureSchema>;
+export type UpdateFeatureInput = z.infer<typeof updateFeatureSchema>;
+export type CreateScopingItemInput = z.infer<typeof createScopingItemSchema>;
+export type UpdateScopingItemInput = z.infer<typeof updateScopingItemSchema>;

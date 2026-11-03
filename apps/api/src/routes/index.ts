@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { clientController } from '../controllers/clientController';
+import { featureController } from '../controllers/featureController';
+import { scopingController } from '../controllers/scopingController';
 import { projectController } from '../controllers/projectController';
 import { discoveryController } from '../controllers/discoveryController';
 
@@ -19,3 +21,15 @@ apiRouter.get('/questions', discoveryController.listQuestions);
 apiRouter.get('/projects/:projectId/answers', discoveryController.listAnswers);
 apiRouter.put('/projects/:projectId/answers/:questionId', discoveryController.saveAnswer);
 apiRouter.get('/projects/:projectId/discovery/progress', discoveryController.progress);
+
+apiRouter.get('/projects/:projectId/features', featureController.list);
+apiRouter.post('/projects/:projectId/features', featureController.create);
+apiRouter.patch('/projects/:projectId/features/:featureId', featureController.update);
+apiRouter.delete('/projects/:projectId/features/:featureId', featureController.remove);
+
+apiRouter.get('/projects/:projectId/scoping-items', scopingController.list);
+apiRouter.post('/projects/:projectId/scoping-items', scopingController.create);
+apiRouter.patch('/projects/:projectId/scoping-items/:itemId', scopingController.update);
+apiRouter.delete('/projects/:projectId/scoping-items/:itemId', scopingController.remove);
+
+apiRouter.get('/projects/:projectId/summary', scopingController.summary);

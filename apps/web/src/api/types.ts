@@ -82,3 +82,91 @@ export interface DiscoveryProgress {
 }
 
 export type AnswerInput = Pick<Answer, 'value' | 'isReviewed'>
+
+export const FEATURE_PRIORITIES = ['MUST', 'SHOULD', 'COULD', 'WONT'] as const
+export type FeaturePriority = (typeof FEATURE_PRIORITIES)[number]
+
+export const PRIORITY_LABELS: Record<FeaturePriority, string> = {
+  MUST: 'Must — indispensable',
+  SHOULD: 'Should — important',
+  COULD: 'Could — souhaitable',
+  WONT: 'Won’t — hors périmètre',
+}
+
+export interface Feature {
+  id: string
+  projectId: string
+  title: string
+  description: string | null
+  priority: FeaturePriority
+  acceptanceCriteria: string | null
+  sortOrder: number
+  createdAt: string
+  updatedAt: string
+}
+
+export type FeatureInput = Partial<
+  Pick<Feature, 'title' | 'description' | 'priority' | 'acceptanceCriteria' | 'sortOrder'>
+>
+
+export const SCOPING_TYPES = [
+  'CONSTRAINT',
+  'RISK',
+  'DEPENDENCY',
+  'ASSUMPTION',
+  'DECISION',
+  'OPEN_QUESTION',
+] as const
+export const SCOPING_STATUSES = ['OPEN', 'IN_PROGRESS', 'RESOLVED'] as const
+export const SCOPING_SEVERITIES = ['LOW', 'MEDIUM', 'HIGH'] as const
+export type ScopingType = (typeof SCOPING_TYPES)[number]
+export type ScopingStatus = (typeof SCOPING_STATUSES)[number]
+export type ScopingSeverity = (typeof SCOPING_SEVERITIES)[number]
+
+export const SCOPING_TYPE_LABELS: Record<ScopingType, string> = {
+  CONSTRAINT: 'Contraintes',
+  RISK: 'Risques',
+  DEPENDENCY: 'Dépendances',
+  ASSUMPTION: 'Hypothèses',
+  DECISION: 'Décisions',
+  OPEN_QUESTION: 'Questions ouvertes',
+}
+export const SCOPING_STATUS_LABELS: Record<ScopingStatus, string> = {
+  OPEN: 'Ouvert',
+  IN_PROGRESS: 'En cours',
+  RESOLVED: 'Résolu',
+}
+export const SEVERITY_LABELS: Record<ScopingSeverity, string> = {
+  LOW: 'Faible',
+  MEDIUM: 'Moyenne',
+  HIGH: 'Élevée',
+}
+
+export interface ScopingItem {
+  id: string
+  projectId: string
+  type: ScopingType
+  title: string
+  description: string | null
+  status: ScopingStatus
+  severity: ScopingSeverity | null
+  resolution: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export type ScopingItemInput = Partial<
+  Pick<ScopingItem, 'type' | 'title' | 'description' | 'status' | 'severity' | 'resolution'>
+>
+
+export interface ProjectSummary {
+  project: Project
+  client: Client | null
+  discovery: DiscoveryProgress
+  features: Record<FeaturePriority, Feature[]>
+  mvp: Feature[]
+  scopingItems: Record<ScopingType, ScopingItem[]>
+  openQuestions: ScopingItem[]
+  unresolvedHighRisks: ScopingItem[]
+  decisionsCount: number
+}
