@@ -5,6 +5,7 @@ import { TYPE_LABELS, type Project } from '../api/types'
 import { ProjectForm } from '../components/ProjectForm'
 import { formatDate } from '../api/format'
 import { DiscoveryPanel } from '../features/discovery/DiscoveryPanel'
+import { ExportPanel } from '../features/export/ExportPanel'
 import { FeaturesPanel } from '../features/scoping/FeaturesPanel'
 import { ScopingPanel } from '../features/scoping/ScopingPanel'
 import { SummaryPanel } from '../features/scoping/SummaryPanel'
@@ -26,6 +27,7 @@ const TABS = [
   { key: 'features', label: 'Fonctionnalités' },
   { key: 'scoping', label: 'Cadrage' },
   { key: 'summary', label: 'Synthèse' },
+  { key: 'export', label: 'Export PDF' },
 ] as const
 type TabKey = (typeof TABS)[number]['key']
 
@@ -92,6 +94,8 @@ export function ProjectDetailPage() {
         <ScopingPanel projectId={project.id} />
       ) : tab === 'summary' ? (
         <SummaryPanel projectId={project.id} />
+      ) : tab === 'export' ? (
+        <ExportPanel projectId={project.id} />
       ) : editing ? (
         <div className="max-w-2xl">
           <ProjectForm

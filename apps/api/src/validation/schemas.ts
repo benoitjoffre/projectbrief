@@ -157,3 +157,47 @@ export type CreateFeatureInput = z.infer<typeof createFeatureSchema>;
 export type UpdateFeatureInput = z.infer<typeof updateFeatureSchema>;
 export type CreateScopingItemInput = z.infer<typeof createScopingItemSchema>;
 export type UpdateScopingItemInput = z.infer<typeof updateScopingItemSchema>;
+
+export const DOCUMENT_SECTIONS = [
+  'presentation',
+  'context',
+  'scope',
+  'acceptance',
+  'technical',
+  'risks',
+  'openQuestions',
+  'conclusion',
+] as const;
+export type DocumentSection = (typeof DOCUMENT_SECTIONS)[number];
+
+// Valeurs par défaut pensées pour un document remis au client : les risques (interne) sont exclus.
+const SECTION_DEFAULTS: Record<DocumentSection, boolean> = {
+  presentation: true,
+  context: true,
+  scope: true,
+  acceptance: true,
+  technical: true,
+  risks: false,
+  openQuestions: true,
+  conclusion: true,
+};
+
+// .prefault({}) (et non .default) : les valeurs par défaut internes doivent s'appliquer aussi quand l'objet est omis.
+export const documentOptionsSchema = z.strictObject({
+  version: z
+    .string()
+    .trim()
+    .regex(/^[\p{L}\p{N}][\p{L}\p{N} ._-]{0,29}$/u, 'Version invalide (30 caractères max : lettres, chiffres, espace, . _ -)')
+    .default('0.1'),
+  sections: z
+    .strictObject(
+      Object.fromEntries(
+        DOCUMENT_SECTIONS.map((s) => [s, z.boolean().default(SECTION_DEFAULTS[s])]),
+      ) as Record<DocumentSection, z.ZodDefault<z.ZodBoolean>>,
+    )
+    .prefault({})
+    .refine((s) => Object.values(s).some(Boolean), 'Sélectionnez au moins une section'),
+  includeNonMvpFeatures: z.boolean().default(true),
+  includeUnansweredQuestions: z.boolean().default(false),
+});
+export type DocumentOptions = z.infer<typeof documentOptionsSchema>;

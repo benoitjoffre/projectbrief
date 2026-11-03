@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { clientController } from '../controllers/clientController';
+import { documentController } from '../controllers/documentController';
 import { featureController } from '../controllers/featureController';
 import { scopingController } from '../controllers/scopingController';
 import { projectController } from '../controllers/projectController';
@@ -33,3 +34,7 @@ apiRouter.patch('/projects/:projectId/scoping-items/:itemId', scopingController.
 apiRouter.delete('/projects/:projectId/scoping-items/:itemId', scopingController.remove);
 
 apiRouter.get('/projects/:projectId/summary', scopingController.summary);
+
+apiRouter.get('/projects/:projectId/document/warnings', documentController.warnings);
+apiRouter.post('/projects/:projectId/document/preview', documentController.preview);
+apiRouter.post('/projects/:projectId/document/download', documentController.download);

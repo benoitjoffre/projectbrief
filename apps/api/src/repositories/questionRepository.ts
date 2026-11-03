@@ -11,6 +11,9 @@ export const questionRepository = {
         [{ model: Question, as: 'questions' }, 'label', 'ASC'],
       ],
     }),
+  /** Toutes les questions (actives ou non) avec leur catégorie : sert à retrouver les réponses historiques. */
+  findAllWithCategory: () =>
+    Question.findAll({ include: [{ model: QuestionCategory, as: 'category', required: true }] }),
   findById: (id: string) => Question.findByPk(id),
   countActive: () => Question.count({ where: { isActive: true } }),
 };

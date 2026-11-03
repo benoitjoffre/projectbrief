@@ -170,3 +170,27 @@ export interface ProjectSummary {
   unresolvedHighRisks: ScopingItem[]
   decisionsCount: number
 }
+
+export const DOCUMENT_SECTIONS = [
+  'presentation',
+  'context',
+  'scope',
+  'acceptance',
+  'technical',
+  'risks',
+  'openQuestions',
+  'conclusion',
+] as const
+export type DocumentSection = (typeof DOCUMENT_SECTIONS)[number]
+
+export interface DocumentOptions {
+  version: string
+  sections: Record<DocumentSection, boolean>
+  includeNonMvpFeatures: boolean
+  includeUnansweredQuestions: boolean
+}
+
+export interface DocumentWarning {
+  code: string
+  message: string
+}

@@ -5,6 +5,7 @@ import {
   InferAttributes,
   InferCreationAttributes,
   Model,
+  NonAttribute,
 } from 'sequelize';
 import { sequelize } from '../config/database';
 import type { QuestionCategory } from './questionCategory';
@@ -18,6 +19,8 @@ export class Question extends Model<InferAttributes<Question>, InferCreationAttr
   declare isActive: CreationOptional<boolean>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
+
+  declare category?: NonAttribute<QuestionCategory>;
 }
 
 Question.init(

@@ -8,7 +8,7 @@ import { apiRouter } from './routes';
 export function createApp() {
   const app = express();
   app.disable('x-powered-by');
-  app.use(cors({ origin: env.corsOrigin }));
+  app.use(cors({ origin: env.corsOrigin, exposedHeaders: ['Content-Disposition'] }));
   app.use(express.json({ limit: '100kb' }));
 
   app.get('/api/health', (_req, res) => {
