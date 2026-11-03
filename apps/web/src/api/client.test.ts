@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ApiError, fetchPdf } from './client'
+import { api, ApiError, fetchPdf } from './client'
 import { DEFAULT_OPTIONS } from '../features/export/exportOptions'
 
 const stubFetch = (res: Response | Error) =>
@@ -56,5 +56,23 @@ describe('fetchPdf', () => {
   it('refuse une réponse qui n’est pas un PDF', async () => {
     stubFetch(new Response('<html></html>', { headers: { 'Content-Type': 'text/html' } }))
     await expect(fetchPdf('p1', 'preview', DEFAULT_OPTIONS)).rejects.toMatchObject({ message: expect.stringContaining('PDF attendu') })
+  })
+})
+
+describe('erreurs structurées', () => {
+  it('expose le code et la réponse courante d’un conflit d’écriture', async () => {
+    const current = { value: 'serveur', isReviewed: false, updatedAt: '2026-11-03T10:00:00.000Z' }
+    stubFetch(json(409, { error: { code: 'STALE_WRITE', message: 'Modifiée entre-temps.', current } }))
+    const err = await api.savePublicAnswer('t', 'q', { value: 'x', expectedUpdatedAt: null }).catch((e) => e)
+    expect(err).toBeInstanceOf(ApiError)
+    expect(err).toMatchObject({ status: 409, code: 'STALE_WRITE', current })
+  })
+
+  it('n’envoie jamais le jeton d’administration aux routes publiques et encode le jeton du lien', async () => {
+    stubFetch(json(404, { error: { message: 'Lien introuvable' } }))
+    await api.getPublicQuestionnaire('abc/../x').catch(() => {})
+    const [url, init] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit]
+    expect(url).toBe('/api/public/questionnaires/abc%2F..%2Fx')
+    expect((init.headers as Record<string, string>).Authorization).toBeUndefined()
   })
 })

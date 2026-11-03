@@ -4,6 +4,7 @@ import { Feature } from './feature';
 import { Project } from './project';
 import { Question } from './question';
 import { QuestionCategory } from './questionCategory';
+import { QuestionnaireShare } from './questionnaireShare';
 import { ScopingItem } from './scopingItem';
 
 Client.hasMany(Project, { foreignKey: { name: 'clientId', allowNull: false }, as: 'projects' });
@@ -22,7 +23,10 @@ Feature.belongsTo(Project, { foreignKey: { name: 'projectId', allowNull: false }
 Project.hasMany(ScopingItem, { foreignKey: { name: 'projectId', allowNull: false }, as: 'scopingItems', onDelete: 'CASCADE' });
 ScopingItem.belongsTo(Project, { foreignKey: { name: 'projectId', allowNull: false }, as: 'project' });
 
-export { Answer, Client, Feature, Project, Question, QuestionCategory, ScopingItem };
+Project.hasMany(QuestionnaireShare, { foreignKey: { name: 'projectId', allowNull: false }, as: 'shares', onDelete: 'CASCADE' });
+QuestionnaireShare.belongsTo(Project, { foreignKey: { name: 'projectId', allowNull: false }, as: 'project' });
+
+export { Answer, Client, Feature, Project, Question, QuestionCategory, QuestionnaireShare, ScopingItem };
 export { FEATURE_PRIORITIES } from './feature';
 export type { FeaturePriority } from './feature';
 export { SCOPING_SEVERITIES, SCOPING_STATUSES, SCOPING_TYPES } from './scopingItem';

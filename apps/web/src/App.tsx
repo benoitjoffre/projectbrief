@@ -5,11 +5,14 @@ import { ClientsPage } from './pages/ClientsPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { ProjectDetailPage } from './pages/ProjectDetailPage'
 import { ProjectNewPage } from './pages/ProjectNewPage'
+import { PublicQuestionnairePage } from './pages/PublicQuestionnairePage'
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Page publique du client : hors Layout, aucune navigation d'administration. */}
+        <Route path="q/:token" element={<PublicQuestionnairePage />} />
         <Route element={<Layout />}>
           <Route index element={<DashboardPage />} />
           <Route path="clients" element={<ClientsPage />} />

@@ -86,12 +86,29 @@ export const answerParamsSchema = z.object({
 export const projectIdParamSchema = z.object({ projectId: z.uuid('Identifiant de projet invalide') });
 
 // `value` n'est volontairement pas trim : on conserve la saisie telle quelle (retours à la ligne inclus).
+// `expectedUpdatedAt` (optionnel) active la protection contre les écritures obsolètes :
+// date de dernière modification vue par l'appelant, ou null s'il n'a vu aucune réponse.
+const expectedUpdatedAt = z.iso.datetime().nullable().optional();
+
 export const upsertAnswerSchema = z
   .strictObject({
     value: z.string().max(20_000, 'Réponse trop longue').optional(),
     isReviewed: z.boolean().optional(),
+    expectedUpdatedAt,
   })
   .refine((v) => v.value !== undefined || v.isReviewed !== undefined, 'Aucun champ à modifier');
+
+/** Le client public ne peut que saisir le texte : la validation (isReviewed) reste réservée à l'administrateur. */
+export const publicAnswerSchema = z.strictObject({
+  value: z.string().max(20_000, 'Réponse trop longue'),
+  expectedUpdatedAt,
+});
+
+// Jeton : 32 octets en base64url = 43 caractères. Tout autre format est traité comme un lien inconnu (404).
+export const publicTokenParamSchema = z.object({ token: z.string().regex(/^[A-Za-z0-9_-]{43}$/) });
+export const publicAnswerParamsSchema = publicTokenParamSchema.extend({
+  questionId: z.uuid('Identifiant de question invalide'),
+});
 
 export type UpsertAnswerInput = z.infer<typeof upsertAnswerSchema>;
 

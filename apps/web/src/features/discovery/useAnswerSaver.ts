@@ -1,15 +1,12 @@
 import { useEffect, useState, useSyncExternalStore } from 'react'
-import { api } from '../../api/client'
-import type { Answer } from '../../api/types'
-import { AnswerSaver } from './answerSaver'
+import { AnswerSaver, type SaveFn } from './answerSaver'
 
-/** Un saver par projet, avec envoi des modifications en attente au démontage et avant fermeture de l'onglet. */
-export function useAnswerSaver(projectId: string, initialAnswers: Answer[], onConfirmed: () => void) {
+type InitialAnswer = { questionId: string; value: string; isReviewed?: boolean; updatedAt: string }
+
+/** Un saver par écran, avec envoi des modifications en attente au démontage et avant fermeture de l'onglet. */
+export function useAnswerSaver(save: SaveFn, initialAnswers: InitialAnswer[]) {
   const [saver] = useState(() => {
-    const s = new AnswerSaver(async (questionId, data) => {
-      await api.saveAnswer(projectId, questionId, data)
-      onConfirmed()
-    })
+    const s = new AnswerSaver(save)
     s.load(initialAnswers)
     return s
   })

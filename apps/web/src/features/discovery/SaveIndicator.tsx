@@ -6,6 +6,7 @@ const LABELS: Record<SaveStatus, { text: string; className: string } | null> = {
   saving: { text: 'Enregistrement...', className: 'text-slate-500' },
   saved: { text: 'Enregistré', className: 'text-green-700' },
   error: { text: 'Erreur', className: 'text-red-700' },
+  conflict: { text: 'Conflit à résoudre', className: 'text-red-700' },
 }
 
 export function SaveIndicator({ status, onRetry }: { status: SaveStatus; onRetry?: () => void }) {

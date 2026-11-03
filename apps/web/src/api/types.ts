@@ -194,3 +194,34 @@ export interface DocumentWarning {
   code: string
   message: string
 }
+
+export interface ShareStatus {
+  active: boolean
+  share: { id: string; isActive: boolean; completedAt: string | null; createdAt: string } | null
+}
+
+/** Le jeton n'est retourné qu'à la création : il n'est pas récupérable ensuite. */
+export interface CreatedShare extends ShareStatus {
+  token: string
+  path: string
+}
+
+export interface PublicQuestionnaire {
+  project: { name: string }
+  completedAt: string | null
+  categories: Array<{
+    id: string
+    title: string
+    description: string | null
+    questions: Array<{ id: string; label: string; helpText: string | null }>
+  }>
+  answers: Array<{ questionId: string; value: string; updatedAt: string }>
+  progress: { totalQuestions: number; answeredQuestions: number; percentage: number }
+}
+
+export interface PublicAnswerSaved {
+  questionId: string
+  value: string
+  updatedAt: string
+  progress: PublicQuestionnaire['progress']
+}

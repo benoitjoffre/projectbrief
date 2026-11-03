@@ -1,15 +1,21 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { AnswerInput } from '../../api/types'
-import { AnswerSaver } from './answerSaver'
+import { AnswerSaver, SaveConflict } from './answerSaver'
 
-type Call = { questionId: string; data: AnswerInput; resolve: () => void; reject: (e: Error) => void }
+type Call = {
+  questionId: string
+  data: AnswerInput
+  expected: string | null
+  resolve: (updatedAt?: string) => void
+  reject: (e: Error) => void
+}
 
 function setup() {
   const calls: Call[] = []
   const saver = new AnswerSaver(
-    (questionId, data) =>
-      new Promise<void>((resolve, reject) => {
-        calls.push({ questionId, data, resolve, reject })
+    (questionId, data, expected) =>
+      new Promise<{ updatedAt: string }>((resolve, reject) => {
+        calls.push({ questionId, data, expected, resolve: (updatedAt = 't') => resolve({ updatedAt }), reject })
       }),
     700,
   )
@@ -23,9 +29,9 @@ afterEach(() => vi.useRealTimers())
 describe('AnswerSaver', () => {
   it('reprend les réponses chargées depuis le serveur (reprise après rechargement)', () => {
     const { saver } = setup()
-    saver.load([{ questionId: 'q1', value: 'déjà saisi', isReviewed: true }])
-    expect(saver.get('q1')).toEqual({ value: 'déjà saisi', isReviewed: true, status: 'idle' })
-    expect(saver.get('inconnue')).toEqual({ value: '', isReviewed: false, status: 'idle' })
+    saver.load([{ questionId: 'q1', value: 'déjà saisi', isReviewed: true, updatedAt: 't0' }])
+    expect(saver.get('q1')).toEqual({ value: 'déjà saisi', isReviewed: true, status: 'idle', conflict: null })
+    expect(saver.get('inconnue')).toEqual({ value: '', isReviewed: false, status: 'idle', conflict: null })
   })
 
   it('regroupe les frappes rapides en une seule requête après 700 ms', async () => {
@@ -128,7 +134,7 @@ describe('AnswerSaver', () => {
 
   it("n'envoie rien si le contenu est identique à celui du serveur", async () => {
     const { saver, calls } = setup()
-    saver.load([{ questionId: 'q1', value: 'x', isReviewed: false }])
+    saver.load([{ questionId: 'q1', value: 'x', isReviewed: false, updatedAt: 't0' }])
     saver.edit('q1', { value: 'xy' })
     saver.edit('q1', { value: 'x' }) // retour à la valeur d'origine
     await vi.advanceTimersByTimeAsync(700)
@@ -148,5 +154,71 @@ describe('AnswerSaver', () => {
     expect(saver.get('q1').status).toBe('error')
     expect(saver.get('q2').status).toBe('saved')
     expect(saver.getSnapshot().status).toBe('error')
+  })
+
+  it('envoie la version vue du serveur et la met à jour après chaque succès', async () => {
+    const { saver, calls } = setup()
+    saver.load([{ questionId: 'q1', value: 'a', isReviewed: false, updatedAt: 'v1' }])
+    saver.edit('q1', { value: 'b' })
+    await vi.advanceTimersByTimeAsync(700)
+    expect(calls[0].expected).toBe('v1')
+    calls[0].resolve('v2')
+    await tick()
+    saver.edit('q1', { value: 'c' })
+    await vi.advanceTimersByTimeAsync(700)
+    expect(calls[1].expected).toBe('v2')
+    saver.edit('q9', { value: 'neuf' }) // jamais vue du serveur
+    await vi.advanceTimersByTimeAsync(700)
+    expect(calls[2].expected).toBeNull()
+  })
+
+  describe('conflit d’écriture (modifiée ailleurs)', () => {
+    const conflict = () => new SaveConflict({ value: 'version serveur', isReviewed: true, updatedAt: 'v9' })
+
+    async function inConflict() {
+      const ctx = setup()
+      ctx.saver.load([{ questionId: 'q1', value: 'a', isReviewed: false, updatedAt: 'v1' }])
+      ctx.saver.edit('q1', { value: 'ma version' })
+      await vi.advanceTimersByTimeAsync(700)
+      ctx.calls[0].reject(conflict())
+      await tick()
+      return ctx
+    }
+
+    it('passe en « conflict », conserve le brouillon et n’écrase rien', async () => {
+      const { saver, calls } = await inConflict()
+      expect(saver.getSnapshot().status).toBe('conflict')
+      expect(saver.get('q1')).toMatchObject({ value: 'ma version', status: 'conflict', conflict: { value: 'version serveur' } })
+      void saver.flush()
+      await vi.advanceTimersByTimeAsync(2000)
+      expect(calls).toHaveLength(1) // aucun renvoi automatique
+      saver.edit('q1', { value: 'ma version bis' })
+      await vi.advanceTimersByTimeAsync(2000)
+      expect(calls).toHaveLength(1)
+      expect(saver.get('q1').value).toBe('ma version bis')
+      expect(saver.hasUnsaved()).toBe(true)
+    })
+
+    it('« garder ma version » réécrit avec la version serveur comme référence', async () => {
+      const { saver, calls } = await inConflict()
+      saver.resolveConflict('q1', 'mine')
+      await tick()
+      expect(calls).toHaveLength(2)
+      expect(calls[1].expected).toBe('v9')
+      expect(calls[1].data.value).toBe('ma version')
+      calls[1].resolve('v10')
+      await tick()
+      expect(saver.get('q1')).toMatchObject({ value: 'ma version', status: 'saved', conflict: null })
+    })
+
+    it('« reprendre la version enregistrée » adopte la valeur du serveur sans requête', async () => {
+      const { saver, calls } = await inConflict()
+      saver.resolveConflict('q1', 'theirs')
+      expect(saver.get('q1')).toMatchObject({ value: 'version serveur', isReviewed: true, status: 'saved', conflict: null })
+      expect(calls).toHaveLength(1)
+      saver.edit('q1', { value: 'suite' })
+      await vi.advanceTimersByTimeAsync(700)
+      expect(calls[1].expected).toBe('v9')
+    })
   })
 })

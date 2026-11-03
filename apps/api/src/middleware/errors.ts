@@ -11,6 +11,8 @@ export class AppError extends Error {
     public readonly status: number,
     public readonly code: string,
     message: string,
+    /** Données additionnelles exposées au client (ex. version courante lors d'un conflit). */
+    public readonly extra?: Record<string, unknown>,
   ) {
     super(message);
   }
@@ -34,7 +36,7 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
     return;
   }
   if (err instanceof AppError) {
-    res.status(err.status).json({ error: { code: err.code, message: err.message } });
+    res.status(err.status).json({ error: { code: err.code, message: err.message, ...err.extra } });
     return;
   }
   if (err instanceof UniqueConstraintError) {
