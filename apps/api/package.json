@@ -1,14 +1,22 @@
 {
   "name": "api",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/server.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "db:migrate": "sequelize-cli db:migrate",
+    "db:migrate:undo": "sequelize-cli db:migrate:undo",
+    "db:migrate:status": "sequelize-cli db:migrate:status",
+    "db:migrate:test": "NODE_ENV=test sequelize-cli db:migrate"
   },
   "keywords": [],
-  "author": "",
+  "author": "Benoit JOFFRE",
   "license": "ISC",
-  "description": "",
+  "description": "ProjectBrief API",
   "dependencies": {
     "cors": "^2.8.6",
     "dotenv": "^18.0.9",
@@ -22,8 +30,12 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^26.6.6",
+    "@types/supertest": "^7.2.1",
     "sequelize-cli": "^6.6.5",
+    "supertest": "^7.3.1",
     "tsx": "^4.23.15",
-    "typescript": "~5.9.3"
-  }
+    "typescript": "~5.9.3",
+    "vitest": "^3.2.7"
+  },
+  "private": true
 }

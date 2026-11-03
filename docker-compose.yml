@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: projectbrief
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-projectbrief_dev}
+      POSTGRES_DB: projectbrief
+    ports:
+      # Lié à localhost uniquement : PostgreSQL n'est jamais exposé publiquement.
+      - "127.0.0.1:${POSTGRES_PORT:-5434}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U projectbrief"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:

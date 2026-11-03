@@ -7,12 +7,19 @@
     "apps/api"
   ],
   "scripts": {
+    "db:up": "docker compose up -d --wait db",
+    "db:down": "docker compose down",
+    "db:migrate": "npm run db:migrate -w apps/api",
     "dev:web": "npm run dev -w apps/web",
     "dev:api": "npm run dev -w apps/api",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "npm run build -w apps/api && npm run build -w apps/web",
+    "lint": "npm run lint -w apps/web",
+    "typecheck": "npm run typecheck -w apps/api",
+    "test": "npm run test -w apps/api"
   },
   "keywords": [],
   "author": "Benoit JOFFRE",
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "private": true
 }
